@@ -38,7 +38,7 @@ def main():
                         choices=('webassembly'),
                         default='webassembly')
     parser.add_argument('--eigen')
-    parser.add_argument('--out', default='ssd300')
+    parser.add_argument('--out', default='model')
     args = parser.parse_args()
 
     model = SSD300(pretrained_model='voc0712')

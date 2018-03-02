@@ -8,7 +8,7 @@ async function init() {
     file.disabled = true;
     button.disabled = true;
 
-    runner = await WebDNN.load('./ssd300');
+    runner = await WebDNN.load('./model');
 
     file.disabled = false;
     button.disabled = false;
