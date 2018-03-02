@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import os
 
 import chainer
 import chainer.functions as F
@@ -34,8 +35,9 @@ class Normalize(chainer.Link):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--backend',
-                        choices=('webgl', 'webassembly'),
-                        default='webgl')
+                        choices=('webassembly'),
+                        default='webassembly')
+    parser.add_argument('--eigen')
     parser.add_argument('--out', default='ssd300')
     args = parser.parse_args()
 
@@ -52,6 +54,10 @@ def main():
     mb_locs, mb_confs = model(x)
 
     graph = ChainerConverter().convert([x], [mb_locs, mb_confs])
+
+    if args.eigen:
+        os.environ['CPLUS_INCLUDE_PATH'] = args.eigen
+
     desc = generate_descriptor(args.backend, graph)
     desc.save(args.out)
 
