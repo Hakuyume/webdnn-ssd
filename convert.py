@@ -25,7 +25,7 @@ class Normalize(chainer.Link):
         # replace chainer.functions.normalize with more basic operations
         norm = F.broadcast_to(
             F.sum(x * x, axis=1, keepdims=True) ** 0.5 + self.eps, x.shape)
-        # add a new axis
+        # insert np.newaxis first
         scale = F.broadcast_to(
             self.scale[np.newaxis, :, np.newaxis, np.newaxis], x.shape)
         return x / norm * scale
