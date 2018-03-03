@@ -41,17 +41,20 @@ class MultiboxDecoder(chainer.Link):
         self._variance = variance
 
     def __call__(self, mb_locs, mb_confs):
-        yx = self.default_bbox[None, :, :2] + \
-            mb_locs[:, :, :2] * self._variance[0] * \
-            self.default_bbox[None, :, 2:]
-        hw = self.default_bbox[None, :, 2:] * \
-            F.exp(mb_locs[:, :, 2:] * self._variance[1])
+        # yx = self.default_bbox[None, :, :2] + \
+        #     mb_locs[:, :, :2] * self._variance[0] \
+        #     * self.default_bbox[None, :, 2:]
+        # hw = self.default_bbox[None, :, 2:] * \
+        #     F.exp(mb_locs[:, :, 2:] * self._variance[1])
+
+        yx = self.default_bbox[None, :, :2]
+        hw = self.default_bbox[None, :, 2:]
 
         tl = yx - hw / 2
         br = yx + hw / 2
 
         mb_bboxes = F.concat((tl, br), axis=2)
-        mb_scores = F.softmax(mb_confs)[:, :, 1:]
+        mb_scores = F.softmax(mb_confs, axis=2)[:, :, 1:]
         return mb_bboxes, mb_scores
 
 
@@ -92,7 +95,6 @@ def main():
     args = parser.parse_args()
 
     model = SSD300()
-
     x = chainer.Variable(
         np.empty((1, 3, model.insize, model.insize), dtype=np.float32))
     mb_bboxes, mb_scores = model(x)
