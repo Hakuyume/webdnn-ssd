@@ -1,7 +1,7 @@
 # WebDNN-SSD
 Single Shot MultiBox Detector on [WebDNN](https://mil-tokyo.github.io/webdnn/)
 
-<!-- ## [Demo](https://hakuyume.github.io/webdnn-ssd/) -->
+## [Demo](https://webdnn-ssd.netlify.com)
 
 ## Installation
 Requirements
