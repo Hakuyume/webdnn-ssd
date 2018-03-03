@@ -1,8 +1,7 @@
 'use strict';
 
 const WebDNN = require('webdnn');
-let runner;
-let utils;
+let runner, utils;
 
 const canvas = document.getElementById('canvas');
 const file = document.getElementById("image");
@@ -88,15 +87,12 @@ async function run() {
                 bbox_ptr, 1,
                 score_ptr + lb * 4, n_class,
                 0.45, 0.6);
+
             const indices = new Uint32Array(utils.memory.buffer, indices_ptr);
+            const bbox = new Float32Array(utils.memory.buffer, bbox_ptr);
 
             for (let k = 0; indices[k] < n_bbox; k++) {
-                const i = indices[k];
-                const bbox = new Float32Array(utils.memory.buffer, bbox_ptr);
-                const t = bbox[i * 4 + 0];
-                const l = bbox[i * 4 + 1];
-                const b = bbox[i * 4 + 2];
-                const r = bbox[i * 4 + 3];
+                const [t, l, b, r] = bbox.slice(indices[k] * 4, (indices[k] + 1) * 4);
 
                 ctx.fillText(label_names[lb], l, t);
                 ctx.beginPath();
