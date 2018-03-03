@@ -7,7 +7,10 @@ dist/index.html: index.html
 
 dist/model: convert.py
 	mkdir -p dist
-	python convert.py --out dist/model
+	python convert.py --out dist/model --backend webgl
+ifdef EIGEN
+	python convert.py --out dist/model --backend webassembly --eigen $(EIGEN)
+endif
 
 dist/bundle.js: js/main.js
 	cd js; npm run build
