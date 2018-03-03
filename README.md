@@ -11,7 +11,7 @@ Single Shot MultiBox Detector on [WebDNN](https://mil-tokyo.github.io/webdnn/)
     - The result is different from that of [ChainerCV](https://github.com/chainer/chainercv)
 
 ## Installation
-### Convert model from ChainerCV to WebDNN (`model/`)
+### 1. Convert model from ChainerCV to WebDNN (`model/`)
 ```
 $ pip install chainercv webdnn
 $ python convert.py
@@ -20,7 +20,7 @@ Currenly, `convert.py` uses WebAssembly backend.
 Therefore, it requires `emscripten` and `Eigen`.
 You can specify the include path of `Eigen` by `--eigen` option.
 
-### Transpile JavaScript (`bundle.js`)
+### 2. Transpile JavaScript (`bundle.js`)
 ```
 $ cd js/
 $ npm install
@@ -28,9 +28,24 @@ $ npm run build
 $ cp bundle.js ../
 ```
 
-### Compile WebAssembly utility (`utils.wasm`)
+### 3. Compile WebAssembly utility (`utils.wasm`)
 ```
 $ cd utils/
 $ cargo build --release --target wasm32-unknown-unknown
 $ cp target/wasm32-unknown-unknown/release/utils.wasm ../
+```
+
+### 4. Launch a web server
+Please make sure the working directly contains following files/directories.
+```
+./
+./index.html
+./model/
+./bundle.js
+./utils.wasm
+```
+
+You can use `http.server` for testing.
+```
+$ python -m http.server
 ```
