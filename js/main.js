@@ -39,8 +39,8 @@ const label_names = [
 
 
 async function init() {
-    runner = await WebDNN.load('./model');
-    utils = await load_wasm('./utils.wasm');
+    [runner, utils] = await Promise.all(
+        [WebDNN.load('./model'), load_wasm('./utils.wasm')]);
 
     file.disabled = false;
     button.disabled = false;
