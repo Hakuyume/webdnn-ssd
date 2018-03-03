@@ -14,10 +14,10 @@ else
 	python convert.py --out dist/model --backend webgl
 endif
 
-dist/bundle.js: js/main.js
-	cd js; npm install; npm run build
+dist/bundle.js: app.js
+	npm run build
 	mkdir -p dist
-	mv js/bundle.js dist/
+	mv bundle.js dist/
 
 dist/utils.wasm: utils/src/*
 	cd utils; cargo build --release --target wasm32-unknown-unknown

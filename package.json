@@ -1,7 +1,7 @@
 {
     "name": "webdnn-ssd",
     "scripts": {
-        "build": "browserify main.js -o bundle.js -t [ babelify --presets es2015 ]"
+        "build": "browserify app.js -o bundle.js -t [ babelify --presets es2015 ]"
     },
     "devDependencies": {
         "babel-core": "^6.26.0",

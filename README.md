@@ -6,12 +6,14 @@ Single Shot MultiBox Detector on [WebDNN](https://mil-tokyo.github.io/webdnn/)
 ## Installation
 Requirements
 
+- Python 3
 - [ChainerCV](https://github.com/chainer/chainercv)
 - [WebDNN](https://mil-tokyo.github.io/webdnn/)
 - nodejs/npm
 - rust/cargo (wasm32-unknown-unknown)
 
 ```
+$ npm install
 $ pip install chainercv webdnn
 $ make
 $ cd dist/
