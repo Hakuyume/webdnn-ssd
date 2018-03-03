@@ -39,9 +39,6 @@ const label_names = [
 
 
 async function init() {
-    file.disabled = true;
-    button.disabled = true;
-
     runner = await WebDNN.load('./model');
     utils = await load_wasm('./utils.wasm');
 
