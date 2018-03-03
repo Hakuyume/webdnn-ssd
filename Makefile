@@ -7,9 +7,10 @@ dist/index.html: index.html
 
 dist/model: convert.py
 	mkdir -p dist
-	python convert.py --out dist/model --backend webgl
 ifdef EIGEN
-	python convert.py --out dist/model --backend webassembly --eigen $(EIGEN)
+	python convert.py --out dist/model --backend webgl webassembly --eigen $(EIGEN)
+else
+	python convert.py --out dist/model --backend webgl
 endif
 
 dist/bundle.js: js/main.js

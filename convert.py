@@ -113,7 +113,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--backend',
                         choices=('webgl', 'webassembly'),
-                        default='webgl')
+                        nargs='*', default=())
     parser.add_argument('--eigen')
     parser.add_argument('--out', default='model')
     args = parser.parse_args()
@@ -130,8 +130,10 @@ def main():
 
     if args.eigen:
         os.environ['CPLUS_INCLUDE_PATH'] = args.eigen
-    desc = generate_descriptor(args.backend, graph)
-    desc.save(args.out)
+    for backend in args.backend:
+        print('backend:', backend)
+        desc = generate_descriptor(backend, graph)
+        desc.save(args.out)
 
 
 if __name__ == '__main__':
