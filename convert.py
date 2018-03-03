@@ -41,6 +41,8 @@ class MultiboxDecoder(chainer.Link):
         self._variance = variance
 
     def __call__(self, mb_locs, mb_confs):
+        # The following codes do not work well.
+        # The coordinates of bounding boxes becomes very large.
         # yx = self.default_bbox[None, :, :2] + \
         #     mb_locs[:, :, :2] * self._variance[0] \
         #     * self.default_bbox[None, :, 2:]
