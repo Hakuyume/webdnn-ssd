@@ -1,6 +1,4 @@
 use std::cmp;
-use std::mem;
-use std::slice;
 
 #[repr(C)]
 pub struct Bbox {
@@ -8,38 +6,6 @@ pub struct Bbox {
     x_min: f32,
     y_max: f32,
     x_max: f32,
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn non_maximum_suppression(n_bbox: usize,
-                                                 mb_bbox: *const Bbox,
-                                                 mb_score: *const f32,
-                                                 score_offset: usize,
-                                                 score_stride: usize)
-                                                 -> *mut i32 {
-    let mb_bbox = slice::from_raw_parts(mb_bbox, n_bbox);
-    let mb_score = slice::from_raw_parts(mb_score, n_bbox * score_stride);
-
-
-    let mut posi: Vec<_> = (0..n_bbox)
-        .map(|i| (i, mb_score[score_offset + i * score_stride]))
-        .filter(|&(_, s)| s >= 0.6)
-        .collect();
-    posi.sort_unstable_by(|&(_, s0), &(_, s1)| s1.partial_cmp(&s0).unwrap_or(cmp::Ordering::Equal));
-
-    let mut indices = Vec::new();
-    for (i, _) in posi.into_iter() {
-        if indices
-               .iter()
-               .all(|&j| mb_bbox[i].iou(&mb_bbox[j as usize]) < 0.45) {
-            indices.push(i as i32);
-        }
-    }
-
-    indices.push(-1);
-    let ptr = indices.as_mut_ptr();
-    mem::forget(indices);
-    ptr
 }
 
 impl Bbox {
@@ -59,5 +25,73 @@ impl Bbox {
             x_max: self.x_max.min(other.x_max),
         };
         u.area() / (self.area() + other.area() - u.area())
+    }
+}
+
+pub fn non_maximum_suppression<'a, B, S>(n_bbox: usize,
+                                         bbox: B,
+                                         score: S,
+                                         nms_thresh: f32,
+                                         score_thresh: f32)
+                                         -> Vec<usize>
+    where B: Fn(usize) -> &'a Bbox,
+          S: Fn(usize) -> f32
+{
+    let mut score_indices: Vec<_> = (0..n_bbox)
+        .filter(|&i| score(i) >= score_thresh)
+        .collect();
+    score_indices.sort_unstable_by(|&i, &j| {
+                                       score(j)
+                                           .partial_cmp(&score(i))
+                                           .unwrap_or(cmp::Ordering::Equal)
+                                   });
+
+    let mut nms_indices = Vec::new();
+    for i in score_indices.into_iter() {
+        if nms_indices
+               .iter()
+               .all(|&j| bbox(i).iou(bbox(j)) < nms_thresh) {
+            nms_indices.push(i);
+        }
+    }
+
+    nms_indices
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Bbox;
+    use super::non_maximum_suppression as nms;
+
+    impl Bbox {
+        fn new(y_min: f32, x_min: f32, y_max: f32, x_max: f32) -> Bbox {
+            Bbox {
+                y_min,
+                x_min,
+                y_max,
+                x_max,
+            }
+        }
+    }
+
+    fn bbox() -> Vec<Bbox> {
+        vec![Bbox::new(0., 0., 4., 4.),
+             Bbox::new(1., 1., 5., 5.),
+             Bbox::new(2., 1., 6., 5.),
+             Bbox::new(4., 0., 8., 4.)]
+    }
+
+    #[test]
+    fn test_non_maximum_supression() {
+        let bbox = bbox();
+        let n_bbox = bbox.len();
+        let bbox = |i| &bbox[i];
+        let score = |i| 1. / i as f32;
+
+        assert_eq!(nms(n_bbox, &bbox, &score, 1., 0.), &[0, 1, 2, 3]);
+        assert_eq!(nms(n_bbox, &bbox, &score, 0.5, 0.), &[0, 1, 3]);
+        assert_eq!(nms(n_bbox, &bbox, &score, 0.3, 0.), &[0, 2, 3]);
+        assert_eq!(nms(n_bbox, &bbox, &score, 0.2, 0.), &[0, 3]);
+        assert_eq!(nms(n_bbox, &bbox, &score, 0., 0.), &[0]);
     }
 }

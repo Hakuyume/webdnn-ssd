@@ -1,5 +1,4 @@
-mod memory;
-pub use memory::*;
+pub mod bbox;
 
-mod bbox;
-pub use bbox::*;
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;

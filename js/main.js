@@ -70,11 +70,11 @@ async function run() {
         let mb_bbox = runner.getOutputViews()[0].toActual();
         let mb_score = runner.getOutputViews()[1].toActual();
 
-        let mb_bbox_wasm = utils.alloc_f32(mb_bbox.length);
-        let mb_score_wasm = utils.alloc_f32(mb_score.length);
-        new Float32Array(utils.memory.buffer, mb_bbox_wasm)
+        let mb_bbox_ptr = utils.alloc_f32(mb_bbox.length);
+        let mb_score_ptr = utils.alloc_f32(mb_score.length);
+        new Float32Array(utils.memory.buffer, mb_bbox_ptr)
             .set(mb_bbox);
-        new Float32Array(utils.memory.buffer, mb_score_wasm)
+        new Float32Array(utils.memory.buffer, mb_score_ptr)
             .set(mb_score);
 
         let n_bbox = mb_bbox.length / 4;
@@ -82,13 +82,14 @@ async function run() {
         let ctx = canvas.getContext('2d');
 
         for (let lb = 0; lb < n_fg_class; lb++) {
-            let indices_wasm = utils.non_maximum_suppression(
+            let indices_ptr = utils.non_maximum_suppression(
                 n_bbox,
-                mb_bbox_wasm,
-                mb_score_wasm, lb, n_fg_class);
-            let indices = new Int32Array(utils.memory.buffer, indices_wasm);
+                mb_bbox_ptr, 1,
+                mb_score_ptr + lb * 4, n_fg_class,
+                0.45, 0.6);
+            let indices = new Uint32Array(utils.memory.buffer, indices_ptr);
 
-            for (let k = 0; indices[k] >= 0; k++) {
+            for (let k = 0; indices[k] < n_bbox; k++) {
                 let i = indices[k];
                 let t = mb_bbox[i * 4 + 0];
                 let l = mb_bbox[i * 4 + 1];
@@ -101,11 +102,11 @@ async function run() {
                 ctx.strokeRect(l, t, r, b);
             }
 
-            utils.free(indices_wasm);
+            utils.free(indices_ptr);
         }
 
-        utils.free(mb_bbox_wasm);
-        utils.free(mb_score_wasm);
+        utils.free(mb_bbox_ptr);
+        utils.free(mb_score_ptr);
     } finally {
         file.disabled = false;
         button.disabled = false;
