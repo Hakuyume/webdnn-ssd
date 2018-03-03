@@ -1,17 +1,17 @@
 'use strict';
 
-let WebDNN = require('webdnn');
+const WebDNN = require('webdnn');
 let runner;
 let utils;
 
-let canvas = document.getElementById('canvas');
-let file = document.getElementById("image");
-let button = document.getElementById("button");
+const canvas = document.getElementById('canvas');
+const file = document.getElementById("image");
+const button = document.getElementById("button");
 
 async function load_wasm(url) {
-    let response = await fetch(url);
-    let bytes = await response.arrayBuffer();
-    let result = await WebAssembly.instantiate(bytes);
+    const response = await fetch(url);
+    const bytes = await response.arrayBuffer();
+    const result = await WebAssembly.instantiate(bytes);
     return result.instance.exports;
 }
 
@@ -55,46 +55,51 @@ async function run() {
         file.disabled = true;
         button.disabled = true;
 
-        let options = {
+        const options = {
             dstH: 300, dstW: 300,
             order: WebDNN.Image.Order.CHW,
             bias: [123, 117, 104]
         };
-        let img = await WebDNN.Image.getImageArray(file, options);
+        const img = await WebDNN.Image.getImageArray(file, options);
 
         WebDNN.Image.setImageArrayToCanvas(img, 300, 300, canvas, options);
 
         runner.getInputViews()[0].set(img);
+        const outputs = runner.getOutputViews();
+
         await runner.run();
 
-        let mb_bbox = runner.getOutputViews()[0].toActual();
-        let mb_score = runner.getOutputViews()[1].toActual();
+        const n_bbox_k = [5776, 2166, 600, 150, 36, 4];
+        const n_bbox = n_bbox_k.reduce((s, x) => s + x);
+        const n_class = label_names.length;
 
-        let mb_bbox_ptr = utils.alloc_f32(mb_bbox.length);
-        let mb_score_ptr = utils.alloc_f32(mb_score.length);
-        new Float32Array(utils.memory.buffer, mb_bbox_ptr)
-            .set(mb_bbox);
-        new Float32Array(utils.memory.buffer, mb_score_ptr)
-            .set(mb_score);
+        const bbox_ptr = utils.alloc_f32(n_bbox * 4);
+        const score_ptr = utils.alloc_f32(n_bbox * n_class);
 
-        let n_bbox = mb_bbox.length / 4;
-        let n_fg_class = mb_score.length * 4 / mb_bbox.length;
-        let ctx = canvas.getContext('2d');
+        for (let k = 0, offset = 0; k < n_bbox_k.length; k++, offset += n_bbox_k[k]) {
+            new Float32Array(utils.memory.buffer, bbox_ptr)
+                .set(outputs[k * 2 + 0].toActual(), offset * 4);
+            new Float32Array(utils.memory.buffer, score_ptr)
+                .set(outputs[k * 2 + 1].toActual(), offset * n_class);
+        }
 
-        for (let lb = 0; lb < n_fg_class; lb++) {
-            let indices_ptr = utils.non_maximum_suppression(
+        const ctx = canvas.getContext('2d');
+
+        for (let lb = 0; lb < n_class; lb++) {
+            const indices_ptr = utils.non_maximum_suppression(
                 n_bbox,
-                mb_bbox_ptr, 1,
-                mb_score_ptr + lb * 4, n_fg_class,
+                bbox_ptr, 1,
+                score_ptr + lb * 4, n_class,
                 0.45, 0.6);
-            let indices = new Uint32Array(utils.memory.buffer, indices_ptr);
+            const indices = new Uint32Array(utils.memory.buffer, indices_ptr);
 
             for (let k = 0; indices[k] < n_bbox; k++) {
-                let i = indices[k];
-                let t = mb_bbox[i * 4 + 0];
-                let l = mb_bbox[i * 4 + 1];
-                let b = mb_bbox[i * 4 + 2];
-                let r = mb_bbox[i * 4 + 3];
+                const i = indices[k];
+                const bbox = new Float32Array(utils.memory.buffer, bbox_ptr);
+                const t = bbox[i * 4 + 0];
+                const l = bbox[i * 4 + 1];
+                const b = bbox[i * 4 + 2];
+                const r = bbox[i * 4 + 3];
 
                 ctx.fillText(label_names[lb], l, t);
                 ctx.beginPath();
@@ -105,8 +110,8 @@ async function run() {
             utils.free(indices_ptr);
         }
 
-        utils.free(mb_bbox_ptr);
-        utils.free(mb_score_ptr);
+        utils.free(bbox_ptr);
+        utils.free(score_ptr);
     } finally {
         file.disabled = false;
         button.disabled = false;
