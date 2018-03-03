@@ -113,7 +113,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--backend',
                         choices=('webgl', 'webassembly'),
-                        default='webassembly')
+                        default='webgl')
     parser.add_argument('--eigen')
     parser.add_argument('--out', default='model')
     args = parser.parse_args()
