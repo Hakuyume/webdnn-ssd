@@ -13,7 +13,6 @@ Requirements
 
 ```
 $ pip install chainercv webdnn
-$ cd js/; npm install; cd -
 $ make
 $ cd dist/
 $ python -m http.server
