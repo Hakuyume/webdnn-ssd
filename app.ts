@@ -10,9 +10,9 @@ async function load_wasm(url) {
 }
 
 const html = {
-    canvas: document.getElementById('canvas'),
-    file: document.getElementById('image'),
-    button: document.getElementById('button'),
+    canvas: <HTMLCanvasElement>document.getElementById('canvas'),
+    file: <HTMLInputElement>document.getElementById('image'),
+    button: <HTMLInputElement>document.getElementById('button'),
     status: document.getElementById('status')};
 
 const label_names = [
