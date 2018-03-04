@@ -4,8 +4,9 @@ import * as WebDNN from 'webdnn';
 
 const html = {
     canvas: document.getElementById('canvas'),
-    file: document.getElementById("image"),
-    button: document.getElementById("button")};
+    file: document.getElementById('image'),
+    button: document.getElementById('button'),
+    status: document.getElementById('status')};
 
 const label_names = [
     'aeroplane',
@@ -29,8 +30,6 @@ const label_names = [
     'train',
     'tvmonitor'];
 
-let runner, utils;
-
 async function load_wasm(url) {
     const response = await fetch(url);
     const bytes = await response.arrayBuffer();
@@ -38,12 +37,10 @@ async function load_wasm(url) {
     return result.instance.exports;
 }
 
-async function init() {
-    [runner, utils] = await Promise.all(
-        [WebDNN.load('./model'), load_wasm('./utils.wasm')]);
+let utils, runner;
 
-    html.file.disabled = false;
-    html.button.disabled = false;
+async function init() {
+    utils = await load_wasm('./utils.wasm');
     html.button.onclick = run;
 }
 
@@ -61,10 +58,19 @@ async function run() {
 
         WebDNN.Image.setImageArrayToCanvas(img, 300, 300, html.canvas, options);
 
+        if (runner == null)
+            html.status.textContent = 'Loading ...';
+            runner = await WebDNN.load(
+                './model',
+                {progressCallback: (loaded, total) => html.status.textContent = `Loading ... ${(loaded / total * 100).toFixed(1)}%`});
+
         runner.getInputViews()[0].set(img);
         const outputs = runner.getOutputViews();
 
+        html.status.textContent = 'Computing ...';
         await runner.run();
+
+        html.status.textContent = 'Visualizing ...';
 
         const n_bbox_k = [5776, 2166, 600, 150, 36, 4];
         const n_bbox = n_bbox_k.reduce((s, x) => s + x);
@@ -106,6 +112,10 @@ async function run() {
 
         utils.free(bbox_ptr);
         utils.free(score_ptr);
+
+        html.status.textContent = 'Done';
+    } catch (err) {
+        html.status.textContent = 'Error';
     } finally {
         html.file.disabled = false;
         html.button.disabled = false;
