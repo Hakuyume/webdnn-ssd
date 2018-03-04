@@ -3,16 +3,10 @@
 const WebDNN = require('webdnn');
 let runner, utils;
 
-const canvas = document.getElementById('canvas');
-const file = document.getElementById("image");
-const button = document.getElementById("button");
-
-async function load_wasm(url) {
-    const response = await fetch(url);
-    const bytes = await response.arrayBuffer();
-    const result = await WebAssembly.instantiate(bytes);
-    return result.instance.exports;
-}
+const html = {
+    canvas: document.getElementById('canvas'),
+    file: document.getElementById("image"),
+    button: document.getElementById("button")};
 
 const label_names = [
     'aeroplane',
@@ -36,29 +30,36 @@ const label_names = [
     'train',
     'tvmonitor'];
 
+async function load_wasm(url) {
+    const response = await fetch(url);
+    const bytes = await response.arrayBuffer();
+    const result = await WebAssembly.instantiate(bytes);
+    return result.instance.exports;
+}
+
 
 async function init() {
     [runner, utils] = await Promise.all(
         [WebDNN.load('./model'), load_wasm('./utils.wasm')]);
 
-    file.disabled = false;
-    button.disabled = false;
-    button.onclick = run;
+    html.file.disabled = false;
+    html.button.disabled = false;
+    html.button.onclick = run;
 }
 
 async function run() {
     try {
-        file.disabled = true;
-        button.disabled = true;
+        html.file.disabled = true;
+        html.button.disabled = true;
 
         const options = {
             dstH: 300, dstW: 300,
             order: WebDNN.Image.Order.CHW,
             bias: [123, 117, 104]
         };
-        const img = await WebDNN.Image.getImageArray(file, options);
+        const img = await WebDNN.Image.getImageArray(html.file, options);
 
-        WebDNN.Image.setImageArrayToCanvas(img, 300, 300, canvas, options);
+        WebDNN.Image.setImageArrayToCanvas(img, 300, 300, html.canvas, options);
 
         runner.getInputViews()[0].set(img);
         const outputs = runner.getOutputViews();
@@ -79,7 +80,7 @@ async function run() {
                 .set(outputs[k * 2 + 1].toActual(), offset * n_class);
         }
 
-        const ctx = canvas.getContext('2d');
+        const ctx = html.canvas.getContext('2d');
 
         for (let lb = 0; lb < n_class; lb++) {
             const indices_ptr = utils.non_maximum_suppression(
@@ -106,8 +107,8 @@ async function run() {
         utils.free(bbox_ptr);
         utils.free(score_ptr);
     } finally {
-        file.disabled = false;
-        button.disabled = false;
+        html.file.disabled = false;
+        html.button.disabled = false;
     }
 }
 
