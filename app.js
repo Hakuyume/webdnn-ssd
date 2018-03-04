@@ -2,6 +2,13 @@
 
 import * as WebDNN from 'webdnn';
 
+async function load_wasm(url) {
+    const response = await fetch(url);
+    const bytes = await response.arrayBuffer();
+    const result = await WebAssembly.instantiate(bytes);
+    return result.instance.exports;
+}
+
 const html = {
     canvas: document.getElementById('canvas'),
     file: document.getElementById('image'),
@@ -30,17 +37,22 @@ const label_names = [
     'train',
     'tvmonitor'];
 
-async function load_wasm(url) {
-    const response = await fetch(url);
-    const bytes = await response.arrayBuffer();
-    const result = await WebAssembly.instantiate(bytes);
-    return result.instance.exports;
-}
-
-let utils, runner;
+let utils, runner, img;
 
 async function init() {
     utils = await load_wasm('./utils.wasm');
+    html.file.oninput = async () => {
+        const options = {
+            dstH: 300, dstW: 300,
+            order: WebDNN.Image.Order.CHW,
+            bias: [123, 117, 104]
+        };
+
+        img = await WebDNN.Image.getImageArray(html.file, options);
+        WebDNN.Image.setImageArrayToCanvas(img, 300, 300, html.canvas, options);
+        html.button.disabled = false;
+        html.status.textContent = '';
+    };
     html.button.onclick = run;
 }
 
@@ -49,20 +61,12 @@ async function run() {
         html.file.disabled = true;
         html.button.disabled = true;
 
-        const options = {
-            dstH: 300, dstW: 300,
-            order: WebDNN.Image.Order.CHW,
-            bias: [123, 117, 104]
-        };
-        const img = await WebDNN.Image.getImageArray(html.file, options);
-
-        WebDNN.Image.setImageArrayToCanvas(img, 300, 300, html.canvas, options);
-
-        if (runner == null)
+        if (runner == null) {
             html.status.textContent = 'Loading ...';
             runner = await WebDNN.load(
                 './model',
                 {progressCallback: (loaded, total) => html.status.textContent = `Loading ... ${(loaded / total * 100).toFixed(1)}%`});
+        }
 
         runner.getInputViews()[0].set(img);
         const outputs = runner.getOutputViews();
