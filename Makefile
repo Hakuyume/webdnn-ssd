@@ -6,18 +6,15 @@ dist/index.html: index.html
 	cp index.html dist/
 
 dist/model: convert.py
-	mkdir -p dist
-	rm -rf dist/model
+	- rm -r dist/model
 ifdef EIGEN
 	python convert.py --out dist/model --backend webgl webassembly --eigen $(EIGEN)
 else
 	python convert.py --out dist/model --backend webgl
 endif
 
-dist/bundle.js: app.js
+dist/bundle.js: app.ts
 	npm run build
-	mkdir -p dist
-	mv bundle.js dist/
 
 dist/utils.wasm: utils/src/*
 	cd utils; rustup run nightly cargo build --release --target wasm32-unknown-unknown
