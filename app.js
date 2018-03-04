@@ -1,7 +1,6 @@
 'use strict';
 
-const WebDNN = require('webdnn');
-let runner, utils;
+import * as WebDNN from 'webdnn';
 
 const html = {
     canvas: document.getElementById('canvas'),
@@ -30,13 +29,14 @@ const label_names = [
     'train',
     'tvmonitor'];
 
+let runner, utils;
+
 async function load_wasm(url) {
     const response = await fetch(url);
     const bytes = await response.arrayBuffer();
     const result = await WebAssembly.instantiate(bytes);
     return result.instance.exports;
 }
-
 
 async function init() {
     [runner, utils] = await Promise.all(
