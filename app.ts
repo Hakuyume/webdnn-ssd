@@ -35,7 +35,25 @@ const label_names = [
     'train',
     'tvmonitor'];
 
-let utils: any | null = null;
+type usize = number;
+type usize_ptr = number;
+type f32 = number;
+type f32_ptr = number;
+type Utils = {
+    memory: WebAssembly.Memory,
+    malloc: (len: usize) => f32_ptr,
+    free: (ptr: f32_ptr) => void,
+    non_maximum_suppression: (
+        n_bbox: usize,
+        bbox: f32_ptr,
+        bbox_stride: usize,
+        score: f32_ptr,
+        score_stride: usize,
+        nms_thresh: f32,
+        score_thresh: f32) => usize_ptr
+}
+
+let utils: Utils | null = null;
 let runner: WebDNN.DescriptorRunner | null = null;
 let img: Float32Array | Int32Array | null = null;
 
@@ -58,6 +76,10 @@ async function init() {
 
 async function run() {
     try {
+        if (utils == null) {
+            throw 'Null Utils';
+        }
+
         html.file.disabled = true;
         html.button.disabled = true;
 
