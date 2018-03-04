@@ -10,11 +10,14 @@ Requirements
 - [ChainerCV](https://github.com/chainer/chainercv)
 - [WebDNN](https://mil-tokyo.github.io/webdnn/)
 - nodejs/npm
-- rust/cargo (wasm32-unknown-unknown)
+- rust/cargo (nightly + wasm32-unknown-unknown)
 
 ```
-$ npm install
 $ pip install chainercv webdnn
+$ npm install
+$ rustup install nightly
+$ rustup target add --toolchain nightly wasm32-unknown-unknown
+
 $ make
 $ cd dist/
 $ python -m http.server

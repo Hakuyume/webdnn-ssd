@@ -1,4 +1,11 @@
-pub mod bbox;
+#![feature(conservative_impl_trait)]
 
-#[cfg(target_arch = "wasm32")]
-pub mod wasm;
+extern crate num_traits;
+
+mod rect;
+pub use rect::*;
+
+mod nms;
+pub use nms::*;
+
+pub mod ffi;

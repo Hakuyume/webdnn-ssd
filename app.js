@@ -80,8 +80,8 @@ async function run() {
         const n_bbox = n_bbox_k.reduce((s, x) => s + x);
         const n_class = label_names.length;
 
-        const bbox_ptr = utils.alloc_f32(n_bbox * 4);
-        const score_ptr = utils.alloc_f32(n_bbox * n_class);
+        const bbox_ptr = utils.malloc(n_bbox * 4);
+        const score_ptr = utils.malloc(n_bbox * n_class);
 
         for (let k = 0, offset = 0; k < n_bbox_k.length; k++, offset += n_bbox_k[k]) {
             new Float32Array(utils.memory.buffer, bbox_ptr)
@@ -95,7 +95,7 @@ async function run() {
         for (let lb = 0; lb < n_class; lb++) {
             const indices_ptr = utils.non_maximum_suppression(
                 n_bbox,
-                bbox_ptr, 1,
+                bbox_ptr, 4,
                 score_ptr + lb * 4, n_class,
                 0.45, 0.6);
 

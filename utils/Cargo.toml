@@ -7,3 +7,4 @@ name = "utils"
 crate-type = ["cdylib"]
 
 [dependencies]
+num-traits = "0.2"

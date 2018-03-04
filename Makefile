@@ -20,6 +20,6 @@ dist/bundle.js: app.js
 	mv bundle.js dist/
 
 dist/utils.wasm: utils/src/*
-	cd utils; cargo build --release --target wasm32-unknown-unknown
+	cd utils; rustup run nightly cargo build --release --target wasm32-unknown-unknown
 	mkdir -p dist
-	mv utils/target/wasm32-unknown-unknown/release/utils.wasm dist/
+	mv -f utils/target/wasm32-unknown-unknown/release/utils.wasm dist/
