@@ -1,8 +1,6 @@
-'use strict';
-
 import * as WebDNN from 'webdnn';
 
-async function load_wasm(url) {
+async function load_wasm(url: string) {
     const response = await fetch(url);
     const bytes = await response.arrayBuffer();
     const result = await WebAssembly.instantiate(bytes);
@@ -13,7 +11,7 @@ const html = {
     canvas: <HTMLCanvasElement>document.getElementById('canvas'),
     file: <HTMLInputElement>document.getElementById('image'),
     button: <HTMLInputElement>document.getElementById('button'),
-    status: document.getElementById('status')};
+    status: <HTMLElement>document.getElementById('status')};
 
 const label_names = [
     'aeroplane',
@@ -37,7 +35,9 @@ const label_names = [
     'train',
     'tvmonitor'];
 
-let utils, runner, img;
+let utils: any | null = null;
+let runner: WebDNN.DescriptorRunner | null = null;
+let img: Float32Array | Int32Array | null = null;
 
 async function init() {
     utils = await load_wasm('./utils.wasm');
@@ -68,6 +68,9 @@ async function run() {
                 {progressCallback: (loaded, total) => html.status.textContent = `Loading ... ${(loaded / total * 100).toFixed(1)}%`});
         }
 
+        if (img == null) {
+            throw 'Null Image';
+        }
         runner.getInputViews()[0].set(img);
         const outputs = runner.getOutputViews();
 
@@ -91,6 +94,9 @@ async function run() {
         }
 
         const ctx = html.canvas.getContext('2d');
+        if (ctx == null) {
+            throw 'Null Context';
+        }
 
         for (let lb = 0; lb < n_class; lb++) {
             const indices_ptr = utils.non_maximum_suppression(

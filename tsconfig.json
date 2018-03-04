@@ -3,6 +3,11 @@
         "target": "es2018",
         "module": "es2015",
         "moduleResolution": "node",
-        "lib": ["es2017", "dom"]
+        "lib": ["es2017", "dom"],
+
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "strictNullChecks": true
     }
 }
