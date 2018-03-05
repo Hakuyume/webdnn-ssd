@@ -1,5 +1,6 @@
 import * as WebDNN from 'webdnn';
 import {non_maximum_suppression} from './nms';
+import {Multibox} from './multibox';
 
 const html = {
     canvas: <HTMLCanvasElement>document.getElementById('canvas'),
@@ -29,6 +30,15 @@ const label_names = [
     'sofa',
     'train',
     'tvmonitor'];
+
+const multibox = new Multibox(
+    [38, 19, 10, 5, 3, 1],
+    [[2], [2, 3], [2, 3], [2, 3], [2,], [2,]],
+    [8, 16, 32, 64, 100, 300],
+    [30, 60, 111, 162, 213, 264, 315],
+    [0.1, 0.2],
+    label_names.length
+);
 
 let runner: WebDNN.DescriptorRunner | null = null;
 let img: Float32Array | Int32Array | null = null;
@@ -64,40 +74,25 @@ async function run() {
             throw 'Null Image';
         }
         runner.getInputViews()[0].set(img);
-        const output_views = runner.getOutputViews();
+        const outputs = runner.getOutputViews();
 
         html.status.textContent = 'Computing ...';
         await runner.run();
-        const outputs = output_views.map((v) => v.toActual());
+        const bbox = multibox.decode(outputs.map((v) => v.toActual()));
 
         html.status.textContent = 'Visualizing ...';
-
         const ctx = html.canvas.getContext('2d');
         if (ctx == null) {
             throw 'Null Context';
         }
 
-        const n_class = label_names.length;
-        for (let lb = 0; lb < n_class; lb++) {
-            let bbox = [];
-            for (const [k, n] of [5776, 2166, 600, 150, 36, 4].entries()) {
-                for (let i = 0; i < n; i++) {
-                    bbox.push({
-                        y_min: outputs[k * 2 + 0][i * 4 + 0],
-                        x_min: outputs[k * 2 + 0][i * 4 + 1],
-                        y_max: outputs[k * 2 + 0][i * 4 + 2],
-                        x_max: outputs[k * 2 + 0][i * 4 + 3],
-                        score: outputs[k * 2 + 1][i * n_class + lb]
-                    });
-                }
-            }
+        for (let l = 0; l < label_names.length; l++) {
+            let bbox_l = bbox.filter((bb) => bb.score[l] >= 0.6);
+            bbox_l.sort((bb0, bb1) => bb1.score[l] - bb0.score[l]);
+            bbox_l = non_maximum_suppression(bbox_l, 0.45);
 
-            bbox = bbox.filter((bb) => bb.score >= 0.6);
-            bbox.sort((bb0, bb1) => bb1.score - bb0.score);
-            bbox = non_maximum_suppression(bbox, 0.45);
-
-            for (const bb of bbox) {
-                ctx.fillText(label_names[lb], bb.x_min, bb.y_min);
+            for (const bb of bbox_l) {
+                ctx.fillText(label_names[l], bb.x_min, bb.y_min);
                 ctx.beginPath();
                 ctx.strokeStyle = 'red';
                 ctx.strokeRect(bb.x_min, bb.y_min, bb.x_max, bb.y_max);
@@ -107,6 +102,7 @@ async function run() {
         html.status.textContent = 'Done';
     } catch (err) {
         html.status.textContent = 'Error';
+        throw err;
     } finally {
         html.file.disabled = false;
         html.button.disabled = false;
