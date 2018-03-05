@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::convert::TryInto;
 use std::mem;
+use std::os::raw::c_void;
 use std::slice;
 
 use super::Rect;
@@ -8,7 +9,7 @@ use super::non_maximum_suppression_by;
 
 #[cfg(target_arch = "wasm32")]
 #[no_mangle]
-pub unsafe extern "C" fn malloc(len: usize) -> *mut f32 {
+pub unsafe extern "C" fn malloc(len: usize) -> *mut c_void {
     let mut buf = Vec::with_capacity(len);
     let ptr = buf.as_mut_ptr();
     mem::forget(buf);
@@ -17,7 +18,7 @@ pub unsafe extern "C" fn malloc(len: usize) -> *mut f32 {
 
 #[cfg(target_arch = "wasm32")]
 #[no_mangle]
-pub unsafe extern "C" fn free(ptr: *mut ()) {
+pub unsafe extern "C" fn free(ptr: *mut c_void) {
     Box::from_raw(ptr);
 }
 
