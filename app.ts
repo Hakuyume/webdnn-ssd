@@ -80,7 +80,7 @@ async function run() {
         const n_class = label_names.length;
         for (let lb = 0; lb < n_class; lb++) {
             let bbox = [];
-            for (let [k, n] of [5776, 2166, 600, 150, 36, 4].entries()) {
+            for (const [k, n] of [5776, 2166, 600, 150, 36, 4].entries()) {
                 for (let i = 0; i < n; i++) {
                     bbox.push({
                         y_min: outputs[k * 2 + 0][i * 4 + 0],
@@ -96,7 +96,7 @@ async function run() {
             bbox.sort((bb0, bb1) => bb1.score - bb0.score);
             bbox = non_maximum_suppression(bbox, 0.45);
 
-            for (let bb of bbox) {
+            for (const bb of bbox) {
                 ctx.fillText(label_names[lb], bb.x_min, bb.y_min);
                 ctx.beginPath();
                 ctx.strokeStyle = 'red';
