@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::convert::TryInto;
 use std::mem;
 use std::slice;
 
@@ -35,7 +36,7 @@ pub unsafe extern "C" fn non_maximum_suppression(n_bbox: usize,
     indices.sort_unstable_by(|&i, &j| sc(j).partial_cmp(&sc(i)).unwrap_or(Ordering::Equal));
 
     #[derive(Clone, Copy)]
-    struct Bb<'a>(&'a [f32]);
+    struct Bb<'a>(&'a [f32; 4]);
     impl<'a> Rect<f32> for Bb<'a> {
         fn x_min(&self) -> f32 {
             self.0[1]
@@ -51,7 +52,11 @@ pub unsafe extern "C" fn non_maximum_suppression(n_bbox: usize,
         }
     }
     let bbox = slice::from_raw_parts(bbox, (n_bbox - 1) * bbox_stride + 4);
-    let bb = |i| Bb(&bbox[i * bbox_stride..i * bbox_stride + 4]);
+    let bb = |i| {
+        Bb(bbox[i * bbox_stride..i * bbox_stride + 4]
+               .try_into()
+               .unwrap())
+    };
     let mut indices: Vec<_> =
         non_maximum_suppression_by(indices.into_iter(), |&i| bb(i), nms_thresh).collect();
 
