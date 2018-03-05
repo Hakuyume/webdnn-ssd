@@ -36,7 +36,6 @@ pub unsafe extern "C" fn non_maximum_suppression(n_bbox: usize,
     let mut indices: Vec<_> = (0..n_bbox).filter(|&i| sc(i) >= score_thresh).collect();
     indices.sort_unstable_by(|&i, &j| sc(j).partial_cmp(&sc(i)).unwrap_or(Ordering::Equal));
 
-    #[derive(Clone, Copy)]
     struct Bb<'a>(&'a [f32; 4]);
     impl<'a> Rect<f32> for Bb<'a> {
         fn x_min(&self) -> f32 {
