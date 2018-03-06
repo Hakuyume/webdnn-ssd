@@ -10,6 +10,12 @@ export class ScoredBox implements Box {
     ) {}
 }
 
+function softmax(xs: number[]): number[] {
+    const exp = xs.map((x) => Math.exp(x));
+    const sum = exp.reduce((s, x) => s + x);
+    return exp.map((e) => e / sum);
+}
+
 export class Multibox {
     constructor(
         public grids: number[],
@@ -60,15 +66,11 @@ export class Multibox {
                         w *= Math.exp(loc(d, 3, v, u) * this.variance[1]);
 
                         let score: number[] = [];
-                        let sum = 0;
                         for (let l = 0; l < this.n_fg_class + 1; l++) {
-                            const exp = Math.exp(conf(d, l, v, u));
-                            if (l != 0) {
-                                score.push(exp);
-                            }
-                            sum += exp;
+                            score.push(conf(d, l, v, u));
                         }
-                        score = score.map((sc) => sc / sum);
+                        score = softmax(score);
+                        score.shift();
 
                         bbox.push(new ScoredBox(
                             cy - h / 2, cx - w / 2,
