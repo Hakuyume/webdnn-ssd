@@ -44,7 +44,7 @@ let runner: WebDNN.DescriptorRunner | null = null;
 let img: Float32Array | Int32Array | null = null;
 
 async function init() {
-    html.file.oninput = async () => {
+    html.file.onchange = async () => {
         const options = {
             dstH: 300, dstW: 300,
             order: WebDNN.Image.Order.CHW,
