@@ -10,6 +10,10 @@ export class ScoredBox implements Box {
     ) {}
 }
 
+function range(n: number): number[] {
+    return Array.from(Array(n).keys());
+}
+
 function softmax(xs: number[]): number[] {
     const exp = xs.map((x) => Math.exp(x));
     const sum = exp.reduce((s, x) => s + x);
@@ -65,10 +69,7 @@ export class Multibox {
                         h *= Math.exp(loc(d, 2, v, u) * this.variance[1]);
                         w *= Math.exp(loc(d, 3, v, u) * this.variance[1]);
 
-                        let score: number[] = [];
-                        for (let l = 0; l < this.n_fg_class + 1; l++) {
-                            score.push(conf(d, l, v, u));
-                        }
+                        let score = range(this.n_fg_class + 1).map((l) => conf(d, l, v, u));
                         score = softmax(score);
                         score.shift();
 
