@@ -4,7 +4,7 @@ import {Multibox} from './multibox';
 
 const html = {
     canvas: <HTMLCanvasElement>document.getElementById('canvas'),
-    file: <HTMLInputElement>document.getElementById('image'),
+    file: <HTMLInputElement>document.getElementById('file'),
     button: <HTMLInputElement>document.getElementById('button'),
     status: <HTMLElement>document.getElementById('status')
 };
@@ -43,20 +43,19 @@ const multibox = new Multibox(
 let runner: WebDNN.DescriptorRunner | null = null;
 let img: Float32Array | Int32Array | null = null;
 
-async function init() {
-    html.file.onchange = async () => {
-        const options = {
-            dstH: 300, dstW: 300,
-            order: WebDNN.Image.Order.CHW,
-            bias: [123, 117, 104]
-        };
-        img = await WebDNN.Image.getImageArray(html.file, options);
-        WebDNN.Image.setImageArrayToCanvas(img, 300, 300, html.canvas, options);
-        html.button.disabled = false;
-        html.status.textContent = '';
+html.file.onchange = async () => {
+    const options = {
+        dstH: 300, dstW: 300,
+        order: WebDNN.Image.Order.CHW,
+        bias: [123, 117, 104]
     };
-    html.button.onclick = run;
-}
+    img = await WebDNN.Image.getImageArray(html.file, options);
+    WebDNN.Image.setImageArrayToCanvas(img, 300, 300, html.canvas, options);
+    html.button.disabled = false;
+    html.status.textContent = '';
+};
+html.button.disabled = true;
+html.button.onclick = run;
 
 async function run() {
     try {
@@ -108,5 +107,3 @@ async function run() {
         html.button.disabled = false;
     }
 }
-
-init();
