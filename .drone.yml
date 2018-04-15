@@ -9,9 +9,9 @@ pipeline:
       - npm install
       - npm run-script build
   python:
-    image: python
+    image: base/archlinux
     commands:
+      - pacman -Syu --noconfirm
+      - pacman -S --noconfirm eigen emscripten python-pip
       - pip install chainercv webdnn
-      - apt-get update
-      - apt-get install -y --no-install-recommends emscripten libeigen3-dev
       - python convert.py --out dist/model --backend webgl webassembly
