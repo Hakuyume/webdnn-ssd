@@ -14,4 +14,7 @@ pipeline:
       - pacman -Syu --noconfirm
       - pacman -S --noconfirm eigen emscripten python-pip
       - pip install chainercv webdnn
-      - python convert.py --out dist/model --backend webgl webassembly
+      - |
+        PATH=/usr/lib/emscripten:$PATH \
+        CPLUS_INCLUDE_PATH=/usr/include/eigen3 \
+        python convert.py --out dist/model --backend webgl webassembly
