@@ -3,4 +3,4 @@ pipeline:
     image: node
     commands:
       - npm install
-      - npm build
+      - npm run-script build
