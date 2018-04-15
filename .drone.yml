@@ -1,0 +1,8 @@
+pipeline:
+  PKGBUILD:
+    image: base/archlinux
+    commands:
+      - pacman -Syu --noconfirm
+      - pacman -S --noconfirm --needed eigen npm python-pip
+      - npm install
+      - npm build
