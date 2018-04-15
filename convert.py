@@ -1,6 +1,5 @@
 import argparse
 import numpy as np
-import os
 
 import chainer
 import chainer.functions as F
@@ -65,7 +64,6 @@ def main():
     parser.add_argument('--backend',
                         choices=('webgl', 'webassembly'),
                         nargs='+')
-    parser.add_argument('--eigen')
     parser.add_argument('--out', default='model')
     args = parser.parse_args()
 
@@ -77,8 +75,6 @@ def main():
 
     graph = ChainerConverter().convert([x], ys)
 
-    if args.eigen:
-        os.environ['CPLUS_INCLUDE_PATH'] = args.eigen
     for backend in args.backend:
         print('backend:', backend)
         desc = generate_descriptor(backend, graph)
