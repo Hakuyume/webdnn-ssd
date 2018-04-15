@@ -1,4 +1,8 @@
 pipeline:
+  html:
+    image: busybox
+    commands:
+      - install -D index.html dist/index.html
   node:
     image: node
     commands:
