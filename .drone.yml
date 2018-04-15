@@ -12,4 +12,6 @@ pipeline:
     image: python
     commands:
       - pip install chainercv webdnn
-      - python convert.py --out dist/model --backend webgl
+      - apt-get update
+      - apt-get install -y --no-install-recommends emscripten libeigen3-dev
+      - python convert.py --out dist/model --backend webgl webassembly
