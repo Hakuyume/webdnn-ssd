@@ -3,6 +3,6 @@ pipeline:
     image: base/archlinux
     commands:
       - pacman -Syu --noconfirm
-      - pacman -S --noconfirm --needed eigen npm python-pip
+      - pacman -S --noconfirm --needed eigen git npm python-pip
       - npm install
       - npm build
