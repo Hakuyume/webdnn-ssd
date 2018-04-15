@@ -4,3 +4,8 @@ pipeline:
     commands:
       - npm install
       - npm run-script build
+  python:
+    image: python
+    commands:
+      - pip install chainercv webdnn
+      - python convert.py --out dist/model --backend webgl
