@@ -17,4 +17,4 @@ pipeline:
       - |
         PATH=/usr/lib/emscripten:$PATH \
         CPLUS_INCLUDE_PATH=/usr/include/eigen3 \
-        python convert.py --out dist/model --backend webgl webassembly
+        python convert.py --out dist/model --backend webgl webassembly > /dev/null
