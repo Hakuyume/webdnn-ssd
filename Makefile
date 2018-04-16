@@ -7,11 +7,7 @@ dist/index.html: index.html
 
 dist/model: convert.py
 	- rm -r dist/model
-ifdef EIGEN
-	python convert.py --out dist/model --backend webgl webassembly --eigen $(EIGEN)
-else
-	python convert.py --out dist/model --backend webgl
-endif
+	python convert.py --out dist/model --backend webgl webassembly
 
 dist/bundle.js: *.ts
 	npm run build
