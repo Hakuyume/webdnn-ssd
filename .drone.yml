@@ -12,9 +12,9 @@ pipeline:
     image: base/archlinux
     commands:
       - pacman -Syu --noconfirm
-      - pacman -S --noconfirm eigen emscripten python-pip
+      - pacman -S --noconfirm eigen emscripten grep python-pip
       - pip install chainercv webdnn
       - |
         PATH=/usr/lib/emscripten:$PATH \
         CPLUS_INCLUDE_PATH=/usr/include/eigen3 \
-        python convert.py --out dist/model --backend webgl webassembly > /dev/null
+        python convert.py --out dist/model --backend webgl webassembly | grep -vE '\r'
